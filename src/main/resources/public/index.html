@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f4c5c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cert Cache">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+  <title>PWA Cert Cache</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="icon" sizes="192x192" href="/icons/icon-192.png">
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">PWA / iOS / Cache Storage</p>
+        <h1>Cert Cache</h1>
+      </div>
+      <div class="topbar-meta">
+        <div class="install-state" id="installState">Safari</div>
+        <div class="app-version" id="appVersion">v-</div>
+      </div>
+    </header>
+
+    <section class="status-grid" aria-live="polite">
+      <article class="status-card status-card-live" id="liveCard">
+        <span class="status-mark"></span>
+        <div>
+          <p class="label">Сертификат действует</p>
+          <strong id="liveTitle">Ожидание запроса</strong>
+          <span id="liveMeta">Домен ещё не ответил</span>
+        </div>
+      </article>
+      <article class="status-card status-card-cache" id="cacheCard">
+        <span class="status-mark"></span>
+        <div>
+          <p class="label">Сертификат недоступен</p>
+          <strong id="cacheTitle">Кэш готовится</strong>
+          <span id="cacheMeta">Снимок появится после первого ответа</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="workspace">
+      <div class="panel primary-panel">
+        <div class="panel-header">
+          <div>
+            <p class="label">Текущий источник</p>
+            <h2 id="sourceTitle">Подключение</h2>
+          </div>
+          <span class="source-badge" id="sourceBadge">init</span>
+        </div>
+
+        <dl class="metrics">
+          <div>
+            <dt>Origin</dt>
+            <dd id="originValue">-</dd>
+          </div>
+          <div>
+            <dt>Request ID</dt>
+            <dd id="requestValue">-</dd>
+          </div>
+          <div>
+            <dt>Ответ</dt>
+            <dd id="servedValue">-</dd>
+          </div>
+          <div>
+            <dt>Кэш</dt>
+            <dd id="cacheValue">-</dd>
+          </div>
+        </dl>
+
+        <div class="toolbar">
+          <button class="button button-primary" id="refreshButton" type="button">Обновить</button>
+          <button class="button" id="networkButton" type="button">Проверить домен</button>
+          <label class="switch">
+            <input id="cacheOnlySwitch" type="checkbox">
+            <span>Только кэш</span>
+          </label>
+        </div>
+      </div>
+
+      <aside class="panel side-panel">
+        <div class="panel-header compact">
+          <div>
+            <p class="label">Журнал</p>
+            <h2>Запросы</h2>
+          </div>
+          <div class="counter-pair">
+            <span><b id="liveCount">0</b> live</span>
+            <span><b id="cacheCount">0</b> cache</span>
+          </div>
+        </div>
+        <ol class="request-log" id="requestLog"></ol>
+      </aside>
+    </section>
+  </main>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,375 @@
+:root {
+  color-scheme: light;
+  --bg: #f6f4ef;
+  --ink: #17212b;
+  --muted: #66727d;
+  --line: #d7d4cc;
+  --panel: #ffffff;
+  --teal: #0f4c5c;
+  --green: #1d7f54;
+  --amber: #b26b00;
+  --red: #b23a48;
+  --blue: #205b9f;
+  --shadow: 0 18px 45px rgba(23, 33, 43, 0.08);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(15, 76, 92, 0.08), rgba(15, 76, 92, 0) 260px),
+    var(--bg);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: max(22px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom));
+}
+
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 8px 0 22px;
+}
+
+.topbar-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.eyebrow,
+.label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 750;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 7vw, 4.5rem);
+  line-height: 0.95;
+}
+
+h2 {
+  font-size: 1.25rem;
+  line-height: 1.15;
+}
+
+.install-state,
+.source-badge,
+.app-version {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 12px;
+  color: var(--teal);
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 0.85rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.app-version {
+  min-height: 28px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.status-card,
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.status-card {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 12px;
+  min-height: 112px;
+  padding: 18px;
+  opacity: 0.76;
+}
+
+.status-card strong,
+.status-card span {
+  display: block;
+}
+
+.status-card strong {
+  margin-top: 8px;
+  font-size: 1.05rem;
+}
+
+.status-card span:not(.status-mark) {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.93rem;
+  line-height: 1.4;
+}
+
+.status-mark {
+  width: 14px;
+  height: 100%;
+  min-height: 72px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.status-card-live .status-mark {
+  background: var(--green);
+}
+
+.status-card-cache .status-mark {
+  background: var(--amber);
+}
+
+.status-card.is-active {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--teal) 36%, var(--line));
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+  gap: 12px;
+}
+
+.panel {
+  padding: 20px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.panel-header.compact {
+  margin-bottom: 12px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.metrics div {
+  min-height: 86px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fbfaf7;
+}
+
+.metrics dt {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.metrics dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.button {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 15px;
+  color: var(--ink);
+  background: #fff;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.button-primary {
+  border-color: var(--teal);
+  color: #fff;
+  background: var(--teal);
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.switch {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 750;
+}
+
+.switch input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--amber);
+}
+
+.counter-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  text-align: right;
+}
+
+.counter-pair b {
+  color: var(--ink);
+}
+
+.request-log {
+  display: grid;
+  gap: 8px;
+  max-height: 370px;
+  min-height: 176px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.request-log li {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr) 74px;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: #fbfaf7;
+  font-size: 0.86rem;
+}
+
+.request-log time {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.request-log strong {
+  overflow-wrap: anywhere;
+}
+
+.log-source {
+  justify-self: end;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #fff;
+  background: var(--blue);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.log-source.cache {
+  background: var(--amber);
+}
+
+.log-source.error {
+  background: var(--red);
+}
+
+@media (max-width: 780px) {
+  .app-shell {
+    padding-inline: 12px;
+  }
+
+  .topbar,
+  .panel-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .status-grid,
+  .workspace,
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .install-state,
+  .source-badge,
+  .topbar-meta {
+    align-self: flex-start;
+  }
+
+  .topbar-meta {
+    align-items: flex-start;
+  }
+
+  .request-log li {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .log-source {
+    grid-column: 2;
+  }
+}
