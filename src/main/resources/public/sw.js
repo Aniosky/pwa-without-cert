@@ -4,14 +4,12 @@ const RUNTIME_CACHE = `cert-cache-runtime-${VERSION}`;
 const SNAPSHOT_KEY = "/__pwa/snapshot/domain-state";
 const MODE_KEY = "/__pwa/mode";
 const BOOTSTRAP_URL = "/api/bootstrap";
-const LOGIN_URL = "/login.html";
-const BUSINESS_ERROR_URL = "/business-error.html";
+const APP_SHELL_URL = "/index.html";
 const LOGIN_NETWORK_TIMEOUT_MS = 1500;
 
 const PRECACHE_URLS = [
   "/",
-  LOGIN_URL,
-  BUSINESS_ERROR_URL,
+  APP_SHELL_URL,
   "/manifest.webmanifest",
   "/icons/apple-touch-icon.png",
   "/icons/icon-192.png",
@@ -93,18 +91,18 @@ self.addEventListener("fetch", (event) => {
 async function handleLoginNavigation() {
   try {
     const response = await withTimeout(
-      fetch(pwaRequest(LOGIN_URL, "login-page", "network"), { cache: "no-store" }),
+      fetch(pwaRequest(APP_SHELL_URL, "app-shell", "network"), { cache: "no-store" }),
       LOGIN_NETWORK_TIMEOUT_MS,
-      "login network timeout"
+      "app shell network timeout"
     );
     if (!response.ok) {
-      throw new Error(`login HTTP ${response.status}`);
+      throw new Error(`app shell HTTP ${response.status}`);
     }
 
-    const html = decorateLoginHtml(await response.clone().text());
+    const html = decorateAppShellHtml(await response.clone().text(), "login", "primary", null);
     return htmlResponse(html, "primary", 200);
   } catch (error) {
-    return cachedBusinessErrorPage(error);
+    return cachedErrorShellPage(error);
   }
 }
 
@@ -118,26 +116,21 @@ function withTimeout(promise, timeoutMs, message) {
     .finally(() => clearTimeout(timeoutId));
 }
 
-async function cachedBusinessErrorPage(reason) {
-  const response = await caches.match(BUSINESS_ERROR_URL);
+async function cachedErrorShellPage(reason) {
+  const response = await caches.match(APP_SHELL_URL) || await caches.match("/");
   if (response) {
-    const html = decorateBusinessErrorHtml(await response.clone().text(), reason);
+    const html = decorateAppShellHtml(await response.clone().text(), "business-error", "cache", reason);
     return htmlResponse(html, "cache", 200);
   }
 
-  return htmlResponse(emergencyBusinessErrorHtml(reason), "cache", 503);
+  return htmlResponse(emergencyErrorShellHtml(reason), "cache", 503);
 }
 
-function decorateLoginHtml(html) {
-  return html
-    .replace(/data-login-source="[^"]*"/, "data-login-source=\"primary\"")
-    .replace(/data-login-version="[^"]*"/, `data-login-version="${VERSION}"`);
-}
-
-function decorateBusinessErrorHtml(html, reason) {
+function decorateAppShellHtml(html, pageState, source, reason) {
   const message = reason && reason.message ? reason.message : "login page fetch failed";
   return html
-    .replace(/data-error-version="[^"]*"/, `data-error-version="${VERSION}"`)
+    .replace(/data-page-state="[^"]*"/, `data-page-state="${pageState}"`)
+    .replace(/data-page-source="[^"]*"/, `data-page-source="${source}"`)
     .replace(/data-error-reason="[^"]*"/, `data-error-reason="${escapeAttribute(message)}"`);
 }
 
@@ -153,7 +146,7 @@ function htmlResponse(html, source, status) {
   });
 }
 
-function emergencyBusinessErrorHtml(reason) {
+function emergencyErrorShellHtml(reason) {
   const message = reason && reason.message ? reason.message : "login page fetch failed";
   return `<!doctype html>
 <html lang="ru">
@@ -168,7 +161,7 @@ function emergencyBusinessErrorHtml(reason) {
     span { margin-top: 8px; color: #65727f; line-height: 1.4; overflow-wrap: anywhere; }
   </style>
 </head>
-<body data-error-version="${VERSION}" data-error-reason="${escapeAttribute(message)}">
+<body data-page-state="business-error" data-page-source="cache" data-app-version="${VERSION}" data-error-reason="${escapeAttribute(message)}">
   <main>
     <strong>Вход временно недоступен.</strong>
     <span>Показано сохраненное бизнес-сообщение. Обновите страницу позже.</span>
@@ -339,7 +332,7 @@ function pwaRequest(requestOrUrl, requestName, mode) {
   const request = typeof requestOrUrl === "string" ? new Request(requestOrUrl) : requestOrUrl;
   const headers = new Headers(request.headers);
 
-  if (requestName === "login-page") {
+  if (requestName === "app-shell") {
     headers.set("Accept", "text/html,application/xhtml+xml");
   } else if (!headers.has("Accept") && requestName !== "precache" && requestName !== "cache-miss") {
     headers.set("Accept", "application/json");

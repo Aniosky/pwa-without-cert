@@ -5,18 +5,17 @@
 Целевой сценарий:
 
 1. Пользователь открывает установленную PWA.
-2. Service worker всегда пытается скачать свежую страницу логина `/login.html` с основного домена.
+2. Service worker всегда пытается скачать свежий single-page shell `/index.html` с основного домена.
 3. Если TLS и сеть в порядке, показывается обычная страница логина.
-4. Если сетевой запрос падает, в том числе из-за TLS-ошибки, показывается заранее закэшированная бизнес-страница `/business-error.html`.
-5. На бизнес-странице есть действия: установить сертификаты Минцифры/НУЦ или открыть сервис в Яндекс Браузере.
+4. Если сетевой запрос падает, в том числе из-за TLS-ошибки, тот же shell открывается из Cache Storage в состоянии бизнес-ошибки.
+5. В состоянии бизнес-ошибки есть действия: установить сертификаты Минцифры/НУЦ или открыть сервис в Яндекс Браузере.
 
 Важно: JavaScript и service worker не получают точную причину TLS-ошибки. Истекший сертификат, отозванный сертификат, недоверенная цепочка, DNS-сбой и offline-режим для кода выглядят как обычный failed `fetch`.
 
 ## Состав проекта
 
 - `src/main/kotlin/org/example/pwa/Main.kt` - небольшой Kotlin HTTP-сервер на `HttpServer`.
-- `src/main/resources/public/login.html` - основная страница логина.
-- `src/main/resources/public/business-error.html` - бизнес-страница fallback из кэша.
+- `src/main/resources/public/index.html` - единственный HTML shell: login-view и fallback-view.
 - `src/main/resources/public/sw.js` - service worker с precache и навигационным fallback.
 - `src/main/resources/public/manifest.webmanifest` и `icons/` - установка PWA на домашний экран.
 - `Caddyfile.sslip` - пример reverse proxy для публичного HTTPS-домена `5.165.202.228.sslip.io`.
@@ -28,8 +27,7 @@
 При установке service worker заранее сохраняет в Cache Storage:
 
 - `/`
-- `/login.html`
-- `/business-error.html`
+- `/index.html`
 - `/manifest.webmanifest`
 - иконки
 - `/api/bootstrap`
@@ -39,12 +37,14 @@
 При каждой навигации PWA выполняет сетевой запрос:
 
 ```js
-fetch("/login.html", { cache: "no-store" })
+fetch("/index.html", { cache: "no-store" })
 ```
 
-Запрос ограничен таймаутом `1500ms`. Если ответ успешный, service worker возвращает свежий HTML логина. Если запрос упал или истек таймаут, service worker возвращает `/business-error.html` из Cache Storage.
+Запрос ограничен таймаутом `1500ms`. Если ответ успешный, service worker возвращает свежий shell в состоянии `login`. Если запрос упал или истек таймаут, service worker возвращает закэшированный `/index.html` в состоянии `business-error`.
 
-Сервер дополнительно отдает `/login.html` и `/business-error.html` с:
+Для совместимости со старыми service worker сервер продолжает принимать `/login.html` и `/business-error.html`, но оба URL физически отдают тот же `/index.html`.
+
+Сервер дополнительно отдает `/index.html`, `/login.html` и `/business-error.html` с:
 
 ```http
 Cache-Control: no-store, max-age=0
@@ -52,15 +52,24 @@ Cache-Control: no-store, max-age=0
 
 Это нужно, чтобы обновление версии PWA не застревало на старых HTML-файлах.
 
+`/sw.js` отдается с:
+
+```http
+Cache-Control: no-cache, max-age=0, must-revalidate
+```
+
+А HTML регистрирует service worker с `updateViaCache: "none"`. Это критично для обновлений: старая версия service worker больше не может удерживать новую HTML-страницу на старой версии из HTTP-кэша.
+
 ## Версия PWA
 
-Текущая версия активного login/fallback flow хранится в трех местах:
+Текущая версия активного login/fallback flow хранится в двух местах:
 
 - `sw.js` в константе `VERSION`
-- `login.html` в `data-login-version` и pill `v...`
-- `business-error.html` в `data-error-version` и pill `v...`
+- `index.html` в константе `APP_VERSION`, `data-app-version` и pill `v...`
 
 В старом диагностическом экране `app.js` есть отдельная константа `APP_VERSION`; ее тоже нужно держать синхронной, чтобы заголовки `X-PWA-Version` и экранная версия не расходились при прямом использовании этого файла.
+
+Service worker больше не подменяет версию HTML своей собственной версией. Это важно для обновлений со старого SW: даже если старый worker обслуживает refresh, свежий `/index.html` регистрирует актуальный `/sw.js?v=<APP_VERSION>`.
 
 При изменении поведения PWA нужно синхронно поднять версию в активных файлах flow и в `app.js`, если используется диагностический экран. На экране логина и fallback-экране версия видна в верхнем блоке, чтобы на iPhone было понятно, обновился ли service worker и HTML.
 
@@ -69,7 +78,7 @@ Cache-Control: no-store, max-age=0
 Все внутренние запросы service worker маркируются заголовками:
 
 - `X-PWA-Client: service-worker`
-- `X-PWA-Request: precache | login-page | domain-state | cache-miss`
+- `X-PWA-Request: precache | app-shell | domain-state | cache-miss`
 - `X-PWA-Version: <version>`
 - `X-PWA-Mode: install | network`
 - `X-PWA-Service-Worker: true`
@@ -145,7 +154,7 @@ Start-Sleep -Seconds 2
 3. Открыть `https://5.165.202.228.sslip.io/` в Safari на iPhone.
 4. Убедиться, что на странице логина видна актуальная версия.
 5. Установить PWA через Share -> Add to Home Screen.
-6. Открыть PWA с домашнего экрана и дождаться, что service worker закэшировал `/business-error.html`.
+6. Открыть PWA с домашнего экрана и дождаться, что service worker закэшировал `/index.html`.
 7. Переключить Caddy на staging-сертификат.
 8. Перезапустить Caddy.
 9. Открыть PWA снова.
@@ -173,7 +182,7 @@ try {
 Проверить, что сервер при этом живой за сломанным TLS:
 
 ```powershell
-curl.exe -k -I https://5.165.202.228.sslip.io/business-error.html
+curl.exe -k -I https://5.165.202.228.sslip.io/index.html
 ```
 
 Ожидаемо будет `HTTP/1.1 200 OK`, потому что `-k` отключает проверку сертификата только для диагностического curl-запроса.
@@ -208,7 +217,7 @@ pwaTrace="..."
 
 - Установка PWA и service worker на iOS требуют secure context, поэтому первый успешный запуск и precache должны пройти через валидный HTTPS.
 - Если TLS уже сломан до первой установки, service worker не установится и кэша не будет.
-- При сломанном TLS нельзя скачать обновленный `sw.js`, `login.html` или `business-error.html` с основного домена. Будет работать только то, что уже лежит в Cache Storage.
+- При сломанном TLS нельзя скачать обновленный `sw.js` или `index.html` с основного домена. Будет работать только то, что уже лежит в Cache Storage.
 - Service worker может обработать навигацию только после того, как он был установлен и активирован в валидном HTTPS-сеансе.
 - Браузер может делать собственный запрос к `/sw.js` при открытии PWA. Полностью запретить этот системный запрос из service worker нельзя.
 

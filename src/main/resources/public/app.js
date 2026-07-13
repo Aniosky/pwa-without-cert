@@ -22,7 +22,7 @@ const elements = {
 };
 
 const APP_VERSION = "2026-07-13.12";
-const SW_URL = "/sw.js";
+const SW_URL = `/sw.js?v=${encodeURIComponent(APP_VERSION)}`;
 const SW_CACHE_MODE_VERSION = APP_VERSION;
 const SW_CACHE_MODE_KEY = `cert-cache-sw-cache-mode-${SW_CACHE_MODE_VERSION}`;
 
@@ -46,7 +46,7 @@ async function init() {
       state.serviceWorkerReady = true;
       const mode = await messageServiceWorker({ type: "GET_MODE" });
       elements.cacheOnlySwitch.checked = Boolean(mode.cacheOnly);
-      await ensureServiceWorkerUpdateUsesHttpCache();
+      await ensureServiceWorkerBypassesHttpCache();
     } catch (error) {
       appendLog("error", "service worker", error.message || "registration failed");
     }
@@ -79,8 +79,8 @@ function bindControls() {
 }
 
 async function registerServiceWorker() {
-  const registration = await navigator.serviceWorker.register(SW_URL, { scope: "/", updateViaCache: "all" });
-  localStorage.setItem(SW_CACHE_MODE_KEY, "all");
+  const registration = await navigator.serviceWorker.register(SW_URL, { scope: "/", updateViaCache: "none" });
+  localStorage.setItem(SW_CACHE_MODE_KEY, "none");
   await navigator.serviceWorker.ready;
 
   if (!navigator.serviceWorker.controller) {
@@ -104,14 +104,14 @@ async function connectServiceWorker() {
   await registerServiceWorker();
 }
 
-async function ensureServiceWorkerUpdateUsesHttpCache() {
-  if (localStorage.getItem(SW_CACHE_MODE_KEY) === "all") {
+async function ensureServiceWorkerBypassesHttpCache() {
+  if (localStorage.getItem(SW_CACHE_MODE_KEY) === "none") {
     return;
   }
 
   const registration = await navigator.serviceWorker.getRegistration("/");
-  if (registration && registration.updateViaCache === "all") {
-    localStorage.setItem(SW_CACHE_MODE_KEY, "all");
+  if (registration && registration.updateViaCache === "none") {
+    localStorage.setItem(SW_CACHE_MODE_KEY, "none");
     return;
   }
 
@@ -167,7 +167,7 @@ async function setCacheOnly(value, options = {}) {
   try {
     await messageServiceWorker({ type: "SET_CACHE_ONLY", value });
     if (!value) {
-      await ensureServiceWorkerUpdateUsesHttpCache();
+      await ensureServiceWorkerBypassesHttpCache();
     }
   } catch (error) {
     if (!options.silent) {

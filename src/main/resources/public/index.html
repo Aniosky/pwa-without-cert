@@ -5,102 +5,504 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0f4c5c">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Cert Cache">
+  <meta name="apple-mobile-web-app-title" content="PWA Login">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="format-detection" content="telephone=no">
-  <title>PWA Cert Cache</title>
+  <title>PWA Login</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <link rel="icon" sizes="192x192" href="/icons/icon-192.png">
-  <link rel="stylesheet" href="/app.css">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f2ec;
+      --ink: #16222d;
+      --muted: #65727f;
+      --line: #d8d2c8;
+      --panel: #ffffff;
+      --teal: #0f4c5c;
+      --amber: #b36b00;
+      --deep-amber: #704300;
+      --green: #1f7a55;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--bg);
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(15, 76, 92, 0.1), rgba(15, 76, 92, 0) 280px),
+        var(--bg);
+    }
+
+    body[data-page-state="business-error"] {
+      background:
+        linear-gradient(180deg, rgba(179, 107, 0, 0.12), rgba(179, 107, 0, 0) 280px),
+        var(--bg);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin-top: 4px;
+      font-size: clamp(2.2rem, 8vw, 4.8rem);
+      line-height: 0.95;
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      line-height: 1.15;
+    }
+
+    .shell {
+      width: min(980px, 100%);
+      margin: 0 auto;
+      padding: max(22px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom));
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 8px 0 24px;
+    }
+
+    .eyebrow,
+    .label {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 760;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .pill {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 12px;
+      color: var(--teal);
+      background: rgba(255, 255, 255, 0.78);
+      font-size: 0.82rem;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    body[data-page-state="business-error"] .pill {
+      color: var(--deep-amber);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 0.62fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 18px 45px rgba(22, 34, 45, 0.08);
+    }
+
+    .login-panel,
+    .status-panel,
+    .error-panel {
+      padding: 22px;
+    }
+
+    .view {
+      display: none;
+    }
+
+    body[data-page-state="login"] .login-view,
+    body[data-page-state="business-error"] .error-view {
+      display: block;
+    }
+
+    body[data-page-state="login"] .login-view.layout {
+      display: grid;
+    }
+
+    .form {
+      display: grid;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      color: var(--ink);
+      background: #fbfaf7;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(15, 76, 92, 0.14);
+    }
+
+    .button,
+    .action {
+      min-height: 46px;
+      border: 1px solid var(--teal);
+      border-radius: 8px;
+      padding: 0 16px;
+      color: #fff;
+      background: var(--teal);
+      font-weight: 780;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .action-secondary {
+      border-color: var(--line);
+      color: var(--ink);
+      background: #fbfaf7;
+    }
+
+    .notice {
+      border: 1px solid rgba(179, 107, 0, 0.4);
+      border-radius: 8px;
+      margin-top: 16px;
+      padding: 14px;
+      color: var(--deep-amber);
+      background: rgba(179, 107, 0, 0.1);
+      line-height: 1.42;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .status-list {
+      display: grid;
+      gap: 10px;
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .status-list li {
+      display: grid;
+      grid-template-columns: 12px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      background: #fbfaf7;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      margin-top: 4px;
+      background: var(--green);
+    }
+
+    body[data-page-state="business-error"] .dot {
+      background: var(--amber);
+    }
+
+    .status-list strong,
+    .status-list span {
+      display: block;
+    }
+
+    .status-list strong {
+      font-size: 0.94rem;
+    }
+
+    .status-list span {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.38;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        padding-inline: 12px;
+      }
+
+      .topbar,
+      .layout,
+      body[data-page-state="login"] .login-view.layout {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        flex-direction: column;
+      }
+
+      .meta {
+        align-items: flex-start;
+      }
+
+      .login-panel,
+      .status-panel,
+      .error-panel {
+        padding: 16px;
+      }
+
+      .actions {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-<body>
-  <main class="app-shell">
+<body data-page-state="login" data-page-source="primary" data-app-version="2026-07-13.12" data-error-reason="">
+  <main class="shell">
     <header class="topbar">
       <div>
-        <p class="eyebrow">PWA / iOS / Cache Storage</p>
-        <h1>Cert Cache</h1>
+        <p class="eyebrow" id="eyebrow">PWA / Login</p>
+        <h1>PWA Login</h1>
       </div>
-      <div class="topbar-meta">
-        <div class="install-state" id="installState">Safari</div>
-        <div class="app-version" id="appVersion">v-</div>
+      <div class="meta">
+        <div class="pill" id="displayMode">Safari</div>
+        <div class="pill" id="versionPill">v2026-07-13.12</div>
       </div>
     </header>
 
-    <section class="status-grid" aria-live="polite">
-      <article class="status-card status-card-live" id="liveCard">
-        <span class="status-mark"></span>
-        <div>
-          <p class="label">Сертификат действует</p>
-          <strong id="liveTitle">Ожидание запроса</strong>
-          <span id="liveMeta">Домен ещё не ответил</span>
-        </div>
+    <section class="view login-view layout" aria-live="polite">
+      <article class="panel login-panel">
+        <p class="label">Вход</p>
+        <h2>Авторизация</h2>
+
+        <form class="form" id="loginForm">
+          <div class="field">
+            <label for="login">Логин</label>
+            <input id="login" name="login" autocomplete="username" inputmode="email" placeholder="user@example.com">
+          </div>
+          <div class="field">
+            <label for="password">Пароль</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Пароль">
+          </div>
+          <button class="button" type="submit">Войти</button>
+        </form>
       </article>
-      <article class="status-card status-card-cache" id="cacheCard">
-        <span class="status-mark"></span>
-        <div>
-          <p class="label">Сертификат недоступен</p>
-          <strong id="cacheTitle">Кэш готовится</strong>
-          <span id="cacheMeta">Снимок появится после первого ответа</span>
-        </div>
-      </article>
+
+      <aside class="panel status-panel">
+        <p class="label">Источник страницы</p>
+        <h2 id="sourceTitle">Основной домен</h2>
+        <ul class="status-list">
+          <li>
+            <span class="dot"></span>
+            <div>
+              <strong id="sourceValue">primary</strong>
+              <span id="sourceDetail">Страница логина загружена напрямую с основного сервера.</span>
+            </div>
+          </li>
+          <li>
+            <span class="dot"></span>
+            <div>
+              <strong id="originValue">-</strong>
+              <span>Текущий origin PWA.</span>
+            </div>
+          </li>
+        </ul>
+      </aside>
     </section>
 
-    <section class="workspace">
-      <div class="panel primary-panel">
-        <div class="panel-header">
-          <div>
-            <p class="label">Текущий источник</p>
-            <h2 id="sourceTitle">Подключение</h2>
-          </div>
-          <span class="source-badge" id="sourceBadge">init</span>
+    <section class="view error-view" aria-live="polite">
+      <article class="panel error-panel">
+        <p class="label">Ошибка входа</p>
+        <h2>Вход временно недоступен</h2>
+        <div class="notice">
+          Показано сохраненное бизнес-сообщение. Можно установить сертификаты НУЦ или открыть сервис в Яндекс Браузере.
         </div>
 
-        <dl class="metrics">
-          <div>
-            <dt>Origin</dt>
-            <dd id="originValue">-</dd>
-          </div>
-          <div>
-            <dt>Request ID</dt>
-            <dd id="requestValue">-</dd>
-          </div>
-          <div>
-            <dt>Ответ</dt>
-            <dd id="servedValue">-</dd>
-          </div>
-          <div>
-            <dt>Кэш</dt>
-            <dd id="cacheValue">-</dd>
-          </div>
-        </dl>
-
-        <div class="toolbar">
-          <button class="button button-primary" id="refreshButton" type="button">Обновить</button>
-          <button class="button" id="networkButton" type="button">Проверить домен</button>
-          <label class="switch">
-            <input id="cacheOnlySwitch" type="checkbox">
-            <span>Только кэш</span>
-          </label>
+        <div class="actions">
+          <button class="action" type="button" id="installCertsButton">Установить сертификаты Минцифры (НУЦ)</button>
+          <button class="action action-secondary" type="button" id="openYandexButton">Открыть в Яндекс Браузере</button>
         </div>
-      </div>
 
-      <aside class="panel side-panel">
-        <div class="panel-header compact">
-          <div>
-            <p class="label">Журнал</p>
-            <h2>Запросы</h2>
-          </div>
-          <div class="counter-pair">
-            <span><b id="liveCount">0</b> live</span>
-            <span><b id="cacheCount">0</b> cache</span>
-          </div>
-        </div>
-        <ol class="request-log" id="requestLog"></ol>
-      </aside>
+        <ul class="status-list">
+          <li>
+            <span class="dot"></span>
+            <div>
+              <strong>Источник страницы: cache</strong>
+              <span>Страница была сохранена заранее и открыта без сетевого ответа.</span>
+            </div>
+          </li>
+          <li>
+            <span class="dot"></span>
+            <div>
+              <strong id="errorOriginValue">-</strong>
+              <span id="statusValue">Код состояния: LOGIN_UNAVAILABLE</span>
+            </div>
+          </li>
+        </ul>
+      </article>
     </section>
   </main>
 
-  <script src="/app.js" defer></script>
+  <script>
+    (() => {
+      const APP_VERSION = "2026-07-13.12";
+      const pageState = document.body.dataset.pageState || "login";
+      const pageSource = document.body.dataset.pageSource || "primary";
+      const primaryUrl = `${window.location.origin}/`;
+      const certificatesUrl = "https://www.gosuslugi.ru/crt";
+      const appStoreUrl = "https://apps.apple.com/us/app/yandex-browser-with-alice-ai/id483693909";
+      const appStoreDirectUrl = "itms-apps://itunes.apple.com/app/id483693909";
+
+      document.querySelector("#displayMode").textContent = window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches
+        ? "Home Screen"
+        : "Safari";
+      document.querySelector("#versionPill").textContent = `v${APP_VERSION}`;
+
+      document.querySelector("#originValue").textContent = window.location.origin;
+      document.querySelector("#errorOriginValue").textContent = window.location.origin;
+      document.querySelector("#sourceValue").textContent = pageSource;
+
+      if (pageState === "business-error") {
+        document.querySelector("#eyebrow").textContent = "PWA / Cached Business Error";
+        document.querySelector("#statusValue").textContent = "Код состояния: LOGIN_UNAVAILABLE";
+      }
+
+      document.querySelector("#loginForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+      });
+
+      document.querySelector("#installCertsButton").addEventListener("click", () => {
+        window.location.href = certificatesUrl;
+      });
+
+      document.querySelector("#openYandexButton").addEventListener("click", () => {
+        openYandexBrowser(primaryUrl);
+      });
+
+      if ("serviceWorker" in navigator) {
+        registerServiceWorker().catch(() => {});
+      }
+
+      async function registerServiceWorker() {
+        let reloadedForController = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (reloadedForController) {
+            return;
+          }
+          reloadedForController = true;
+          const reloadKey = `pwa-controller-reload-${APP_VERSION}`;
+          if (sessionStorage.getItem(reloadKey) !== "true") {
+            sessionStorage.setItem(reloadKey, "true");
+            window.location.reload();
+          }
+        });
+
+        const registration = await navigator.serviceWorker.register(`/sw.js?v=${encodeURIComponent(APP_VERSION)}`, {
+          scope: "/",
+          updateViaCache: "none"
+        });
+        activateWaitingWorker(registration);
+        registration.addEventListener("updatefound", () => {
+          const worker = registration.installing;
+          if (!worker) {
+            return;
+          }
+          worker.addEventListener("statechange", () => {
+            activateWaitingWorker(registration);
+          });
+        });
+        await registration.update();
+        activateWaitingWorker(registration);
+      }
+
+      function activateWaitingWorker(registration) {
+        if (registration.waiting) {
+          registration.waiting.postMessage({ type: "SKIP_WAITING" });
+        }
+      }
+
+      function openYandexBrowser(url) {
+        let leftPage = false;
+        const statusValue = document.querySelector("#statusValue");
+        const fallbackDelayMs = 1400;
+        const encodedUrl = encodeURIComponent(url);
+        const schemeUrl = `yandexbrowser-open-url://${encodedUrl}`;
+
+        const markOpened = () => {
+          leftPage = true;
+        };
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            markOpened();
+          }
+        }, { once: true });
+        window.addEventListener("pagehide", markOpened, { once: true });
+
+        statusValue.textContent = "Открываем Яндекс Браузер...";
+        window.location.href = schemeUrl;
+
+        window.setTimeout(() => {
+          if (leftPage) {
+            return;
+          }
+          statusValue.textContent = "Яндекс Браузер не найден, открываем App Store.";
+          window.location.href = isIos() ? appStoreDirectUrl : appStoreUrl;
+        }, fallbackDelayMs);
+      }
+
+      function isIos() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      }
+    })();
+  </script>
 </body>
 </html>

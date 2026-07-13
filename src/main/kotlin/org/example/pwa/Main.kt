@@ -119,7 +119,8 @@ private fun sendBootstrapState(exchange: HttpExchange, startedAt: Instant) {
 private fun serveStatic(exchange: HttpExchange) {
     val decodedPath = URLDecoder.decode(exchange.requestURI.path, StandardCharsets.UTF_8)
     val requestedPath = when {
-        decodedPath == "/" || decodedPath == "/index.html" -> "/login.html"
+        decodedPath == "/" || decodedPath == "/index.html" -> "/index.html"
+        decodedPath == "/login.html" || decodedPath == "/business-error.html" -> "/index.html"
         decodedPath.contains("..") || decodedPath.contains('\\') -> {
             sendText(exchange, 400, "Bad Request", "text/plain; charset=utf-8")
             return
@@ -130,7 +131,7 @@ private fun serveStatic(exchange: HttpExchange) {
     val resourcePath = PUBLIC_ROOT + requestedPath
     val resourceWithPath = resourceStream(resourcePath)?.let { it to requestedPath }
         ?: if (!requestedPath.substringAfterLast('/').contains('.')) {
-            resourceStream("$PUBLIC_ROOT/login.html")?.let { it to "/login.html" }
+            resourceStream("$PUBLIC_ROOT/index.html")?.let { it to "/index.html" }
         } else {
             null
         }
@@ -143,17 +144,17 @@ private fun serveStatic(exchange: HttpExchange) {
     val (resource, responsePath) = resourceWithPath
     val bytes = resource.use(InputStream::readBytes)
     val cacheControl = when {
-        requestedPath == "/sw.js" -> "public, max-age=86400"
-        responsePath == "/login.html" || responsePath == "/business-error.html" -> "no-store, max-age=0"
-        requestedPath == "/index.html" -> "no-cache"
+        requestedPath == "/sw.js" -> "no-cache, max-age=0, must-revalidate"
+        responsePath == "/index.html" -> "no-store, max-age=0"
         else -> "public, max-age=3600"
     }
 
     val headers = mutableMapOf("Cache-Control" to cacheControl)
     if (requestedPath == "/sw.js") {
         headers["Service-Worker-Allowed"] = "/"
+        headers["Pragma"] = "no-cache"
     }
-    if (responsePath == "/login.html") {
+    if (responsePath == "/index.html") {
         headers["Access-Control-Allow-Origin"] = "*"
         headers["Access-Control-Expose-Headers"] = "Content-Type, X-PWA-Login-Source"
         headers["X-PWA-Login-Source"] = "primary"
