@@ -206,7 +206,7 @@ Get-Content -Wait .\build\caddy-sslip-access.log
 ```text
 pwaClient="service-worker"
 pwaRequest="precache"
-pwaVersion="2026-07-13.12"
+pwaVersion="2026-07-13.13"
 pwaMode="install"
 pwaTrace="..."
 ```
