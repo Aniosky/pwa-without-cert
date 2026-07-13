@@ -89,6 +89,7 @@
     }
 
     .eyebrow,
+    .index-version,
     .label {
       margin: 0;
       color: var(--muted);
@@ -96,6 +97,17 @@
       font-weight: 760;
       letter-spacing: 0;
       text-transform: uppercase;
+    }
+
+    .index-version {
+      margin-top: 8px;
+      color: var(--teal);
+      font-size: 0.86rem;
+      text-transform: none;
+    }
+
+    body[data-page-state="business-error"] .index-version {
+      color: var(--deep-amber);
     }
 
     .meta {
@@ -306,16 +318,17 @@
     }
   </style>
 </head>
-<body data-page-state="login" data-page-source="primary" data-app-version="2026-07-13.13" data-error-reason="">
+<body data-page-state="login" data-page-source="primary" data-app-version="2026-07-13.14" data-error-reason="">
   <main class="shell">
     <header class="topbar">
       <div>
         <p class="eyebrow" id="eyebrow">PWA / Login</p>
         <h1>PWA Login</h1>
+        <p class="index-version" id="indexVersion">index.html v2026-07-13.14</p>
       </div>
       <div class="meta">
         <div class="pill" id="displayMode">Safari</div>
-        <div class="pill" id="versionPill">v2026-07-13.13</div>
+        <div class="pill" id="versionPill">v2026-07-13.14</div>
       </div>
     </header>
 
@@ -394,7 +407,7 @@
 
   <script>
     (() => {
-      const APP_VERSION = "2026-07-13.13";
+      const APP_VERSION = "2026-07-13.14";
       const pageState = document.body.dataset.pageState || "login";
       const pageSource = document.body.dataset.pageSource || "primary";
       const primaryUrl = `${window.location.origin}/`;
@@ -406,6 +419,7 @@
         ? "Home Screen"
         : "Safari";
       document.querySelector("#versionPill").textContent = `v${APP_VERSION}`;
+      document.querySelector("#indexVersion").textContent = `index.html v${APP_VERSION}`;
 
       document.querySelector("#originValue").textContent = window.location.origin;
       document.querySelector("#errorOriginValue").textContent = window.location.origin;
