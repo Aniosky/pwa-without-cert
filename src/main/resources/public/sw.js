@@ -1,10 +1,11 @@
-const VERSION = "2026-07-13.20";
+const VERSION = "2026-07-13.21";
 const APP_CACHE = `cert-cache-app-${VERSION}`;
 const RUNTIME_CACHE = `cert-cache-runtime-${VERSION}`;
 const SNAPSHOT_KEY = "/__pwa/snapshot/domain-state";
 const MODE_KEY = "/__pwa/mode";
 const BOOTSTRAP_URL = "/api/bootstrap";
 const APP_SHELL_URL = "/index.html";
+const APP_SHELL_PATHS = new Set(["/", APP_SHELL_URL]);
 const TRUST_CONNECTION_PARAM = "__pwa_trust_connection";
 const LOGIN_NETWORK_TIMEOUT_MS = 1500;
 
@@ -81,7 +82,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (request.mode === "navigate") {
+  if (isAppShellRequest(request, url)) {
     if (url.searchParams.get(TRUST_CONNECTION_PARAM) === "1") {
       return;
     }
@@ -92,6 +93,14 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(cacheFirst(request));
 });
+
+function isAppShellRequest(request, url) {
+  if (url.searchParams.has("__pwa_precache_version")) {
+    return false;
+  }
+
+  return request.mode === "navigate" || APP_SHELL_PATHS.has(url.pathname);
+}
 
 async function handleLoginNavigation() {
   try {

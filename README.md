@@ -42,6 +42,8 @@ fetch("/index.html", { cache: "no-store" })
 
 Запрос ограничен таймаутом `1500ms`. Если ответ успешный, service worker возвращает свежий shell в состоянии `login` и обновляет сохраненный `/index.html` в Cache Storage. Если запрос упал или истек таймаут, service worker возвращает последний сохраненный `/index.html` в состоянии `business-error`.
 
+Service worker пропускает через этот app-shell handler не только `request.mode === "navigate"`, но и controlled GET-запросы к `/` и `/index.html`. Это нужно для iOS/браузерных запусков, где `/index.html` может прийти не как `navigate`; иначе raw cached `index.html` мог вернуться со state=`login`.
+
 Для совместимости со старыми service worker сервер продолжает принимать `/login.html` и `/business-error.html`, но оба URL физически отдают тот же `/index.html`.
 
 Сервер дополнительно отдает `/index.html`, `/login.html` и `/business-error.html` с:
@@ -206,7 +208,7 @@ Get-Content -Wait .\build\caddy-sslip-access.log
 ```text
 pwaClient="service-worker"
 pwaRequest="precache"
-pwaVersion="2026-07-13.20"
+pwaVersion="2026-07-13.21"
 pwaMode="install"
 pwaTrace="..."
 ```
