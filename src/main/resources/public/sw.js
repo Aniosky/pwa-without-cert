@@ -1,4 +1,4 @@
-const VERSION = "2026-07-13.15";
+const VERSION = "2026-07-13.18";
 const APP_CACHE = `cert-cache-app-${VERSION}`;
 const RUNTIME_CACHE = `cert-cache-runtime-${VERSION}`;
 const SNAPSHOT_KEY = "/__pwa/snapshot/domain-state";
@@ -99,6 +99,7 @@ async function handleLoginNavigation() {
       throw new Error(`app shell HTTP ${response.status}`);
     }
 
+    await storeAppShell(response.clone()).catch(() => {});
     const html = decorateAppShellHtml(await response.clone().text(), "login", "primary", null);
     return htmlResponse(html, "primary", 200);
   } catch (error) {
@@ -124,6 +125,12 @@ async function cachedErrorShellPage(reason) {
   }
 
   return htmlResponse(emergencyErrorShellHtml(reason), "cache", 503);
+}
+
+async function storeAppShell(response) {
+  const cache = await caches.open(APP_CACHE);
+  await cache.put(APP_SHELL_URL, response.clone());
+  await cache.put("/", response.clone());
 }
 
 function decorateAppShellHtml(html, pageState, source, reason) {

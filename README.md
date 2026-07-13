@@ -40,7 +40,7 @@
 fetch("/index.html", { cache: "no-store" })
 ```
 
-Запрос ограничен таймаутом `1500ms`. Если ответ успешный, service worker возвращает свежий shell в состоянии `login`. Если запрос упал или истек таймаут, service worker возвращает закэшированный `/index.html` в состоянии `business-error`.
+Запрос ограничен таймаутом `1500ms`. Если ответ успешный, service worker возвращает свежий shell в состоянии `login` и обновляет сохраненный `/index.html` в Cache Storage. Если запрос упал или истек таймаут, service worker возвращает последний сохраненный `/index.html` в состоянии `business-error`.
 
 Для совместимости со старыми service worker сервер продолжает принимать `/login.html` и `/business-error.html`, но оба URL физически отдают тот же `/index.html`.
 
@@ -206,7 +206,7 @@ Get-Content -Wait .\build\caddy-sslip-access.log
 ```text
 pwaClient="service-worker"
 pwaRequest="precache"
-pwaVersion="2026-07-13.15"
+pwaVersion="2026-07-13.18"
 pwaMode="install"
 pwaTrace="..."
 ```
