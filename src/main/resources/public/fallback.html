@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#704300">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Вход недоступен">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Вход недоступен</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f2ec;
+      --ink: #16222d;
+      --muted: #65727f;
+      --line: #d8d2c8;
+      --panel: #ffffff;
+      --teal: #0f4c5c;
+      --amber: #b36b00;
+      --deep-amber: #704300;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--bg);
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(179, 107, 0, 0.14), rgba(179, 107, 0, 0) 300px),
+        var(--bg);
+    }
+
+    button,
+    p,
+    h1,
+    h2 {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(820px, 100%);
+      margin: 0 auto;
+      padding: max(22px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 8px 0 22px;
+    }
+
+    .eyebrow,
+    .version,
+    .label {
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin-top: 4px;
+      font-size: clamp(2.15rem, 8vw, 4.5rem);
+      line-height: 0.96;
+    }
+
+    .version {
+      margin-top: 8px;
+      color: var(--deep-amber);
+      text-transform: none;
+    }
+
+    .pill {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 12px;
+      color: var(--deep-amber);
+      background: rgba(255, 255, 255, 0.8);
+      font-size: 0.82rem;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      background: var(--panel);
+      box-shadow: 0 18px 45px rgba(22, 34, 45, 0.08);
+    }
+
+    h2 {
+      margin-top: 6px;
+      font-size: 1.45rem;
+      line-height: 1.15;
+    }
+
+    .notice {
+      border: 1px solid rgba(179, 107, 0, 0.42);
+      border-radius: 8px;
+      margin-top: 16px;
+      padding: 14px;
+      color: var(--deep-amber);
+      background: rgba(179, 107, 0, 0.1);
+      line-height: 1.42;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .action {
+      min-height: 48px;
+      border: 1px solid var(--teal);
+      border-radius: 8px;
+      padding: 0 14px;
+      color: #fff;
+      background: var(--teal);
+      font-weight: 780;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .action-secondary {
+      border-color: var(--line);
+      color: var(--ink);
+      background: #fbfaf7;
+    }
+
+    .action-trust {
+      border-color: var(--amber);
+      color: var(--deep-amber);
+      background: rgba(179, 107, 0, 0.1);
+    }
+
+    .status {
+      display: grid;
+      gap: 10px;
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .status li {
+      display: grid;
+      grid-template-columns: 12px minmax(0, 1fr);
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      background: #fbfaf7;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      margin-top: 4px;
+      background: var(--amber);
+    }
+
+    .status strong,
+    .status span {
+      display: block;
+    }
+
+    .status strong {
+      font-size: 0.94rem;
+    }
+
+    .status span {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.38;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        padding-inline: 12px;
+      }
+
+      .topbar {
+        flex-direction: column;
+      }
+
+      .panel {
+        padding: 16px;
+      }
+
+      .actions {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body data-page-state="business-error" data-page-source="cache" data-app-version="2026-07-13.22" data-error-reason="">
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">PWA / Recovery</p>
+        <h1>Вход недоступен</h1>
+        <p class="version">fallback.html v2026-07-13.22</p>
+      </div>
+      <div class="pill">Business fallback</div>
+    </header>
+
+    <section class="panel" aria-live="polite">
+      <p class="label">Восстановление доступа</p>
+      <h2>Выберите способ продолжить</h2>
+      <div class="notice">
+        Не удалось загрузить страницу входа с основного домена. Можно перейти в Яндекс Браузер, скачать сертификаты НУЦ или открыть текущий домен и доверять соединению вручную.
+      </div>
+
+      <div class="actions">
+        <button class="action" type="button" id="openYandexButton">Открыть в Яндекс Браузере</button>
+        <button class="action action-secondary" type="button" id="installCertsButton">Скачать сертификаты НУЦ</button>
+        <button class="action action-trust" type="button" id="trustConnectionButton">Доверять текущему соединению</button>
+      </div>
+
+      <ul class="status">
+        <li>
+          <span class="dot"></span>
+          <div>
+            <strong>Доступные действия</strong>
+            <span>Яндекс Браузер может использовать свой путь доверия, НУЦ восстанавливает доверие к сертификатам, а ручное доверие откроет текущий домен без fallback из кэша.</span>
+          </div>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <div>
+            <strong id="originValue">-</strong>
+            <span id="statusValue">Состояние: LOGIN_UNAVAILABLE</span>
+          </div>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const primaryUrl = `${window.location.origin}/`;
+      const trustConnectionParam = "__pwa_trust_connection";
+      const certificatesUrl = "https://www.gosuslugi.ru/crt";
+      const appStoreUrl = "https://apps.apple.com/us/app/yandex-browser-with-alice-ai/id483693909";
+      const appStoreDirectUrl = "itms-apps://itunes.apple.com/app/id483693909";
+      const statusValue = document.querySelector("#statusValue");
+
+      document.querySelector("#originValue").textContent = window.location.origin;
+
+      document.querySelector("#openYandexButton").addEventListener("click", () => {
+        openYandexBrowser(primaryUrl);
+      });
+
+      document.querySelector("#installCertsButton").addEventListener("click", () => {
+        window.location.href = certificatesUrl;
+      });
+
+      document.querySelector("#trustConnectionButton").addEventListener("click", () => {
+        const trustUrl = new URL(primaryUrl);
+        trustUrl.searchParams.set(trustConnectionParam, "1");
+        trustUrl.searchParams.set("__pwa_trust_ts", String(Date.now()));
+        statusValue.textContent = "Открываем текущий домен без fallback из кэша...";
+        window.location.href = trustUrl.toString();
+      });
+
+      function openYandexBrowser(url) {
+        let leftPage = false;
+        const fallbackDelayMs = 1400;
+        const encodedUrl = encodeURIComponent(url);
+        const schemeUrl = `yandexbrowser-open-url://${encodedUrl}`;
+
+        const markOpened = () => {
+          leftPage = true;
+        };
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            markOpened();
+          }
+        }, { once: true });
+        window.addEventListener("pagehide", markOpened, { once: true });
+
+        statusValue.textContent = "Открываем Яндекс Браузер...";
+        window.location.href = schemeUrl;
+
+        window.setTimeout(() => {
+          if (leftPage) {
+            return;
+          }
+          statusValue.textContent = "Яндекс Браузер не найден, открываем App Store.";
+          window.location.href = isIos() ? appStoreDirectUrl : appStoreUrl;
+        }, fallbackDelayMs);
+      }
+
+      function isIos() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      }
+    })();
+  </script>
+</body>
+</html>

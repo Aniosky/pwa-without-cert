@@ -1,10 +1,11 @@
-const VERSION = "2026-07-13.21";
+const VERSION = "2026-07-13.22";
 const APP_CACHE = `cert-cache-app-${VERSION}`;
 const RUNTIME_CACHE = `cert-cache-runtime-${VERSION}`;
 const SNAPSHOT_KEY = "/__pwa/snapshot/domain-state";
 const MODE_KEY = "/__pwa/mode";
 const BOOTSTRAP_URL = "/api/bootstrap";
 const APP_SHELL_URL = "/index.html";
+const FALLBACK_URL = "/fallback.html";
 const APP_SHELL_PATHS = new Set(["/", APP_SHELL_URL]);
 const TRUST_CONNECTION_PARAM = "__pwa_trust_connection";
 const LOGIN_NETWORK_TIMEOUT_MS = 1500;
@@ -12,6 +13,7 @@ const LOGIN_NETWORK_TIMEOUT_MS = 1500;
 const PRECACHE_URLS = [
   "/",
   APP_SHELL_URL,
+  FALLBACK_URL,
   "/manifest.webmanifest",
   "/icons/apple-touch-icon.png",
   "/icons/icon-192.png",
@@ -132,6 +134,12 @@ function withTimeout(promise, timeoutMs, message) {
 }
 
 async function cachedErrorShellPage(reason) {
+  const fallback = await caches.match(FALLBACK_URL);
+  if (fallback) {
+    const html = decorateFallbackHtml(await fallback.clone().text(), reason);
+    return htmlResponse(html, "cache", 200);
+  }
+
   const response = await caches.match(APP_SHELL_URL) || await caches.match("/");
   if (response) {
     const html = decorateAppShellHtml(await response.clone().text(), "business-error", "cache", reason);
@@ -152,6 +160,12 @@ function decorateAppShellHtml(html, pageState, source, reason) {
   return html
     .replace(/data-page-state="[^"]*"/, `data-page-state="${pageState}"`)
     .replace(/data-page-source="[^"]*"/, `data-page-source="${source}"`)
+    .replace(/data-error-reason="[^"]*"/, `data-error-reason="${escapeAttribute(message)}"`);
+}
+
+function decorateFallbackHtml(html, reason) {
+  const message = reason && reason.message ? reason.message : "login page fetch failed";
+  return html
     .replace(/data-error-reason="[^"]*"/, `data-error-reason="${escapeAttribute(message)}"`);
 }
 

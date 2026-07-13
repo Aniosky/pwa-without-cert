@@ -15,7 +15,8 @@
 ## Состав проекта
 
 - `src/main/kotlin/org/example/pwa/Main.kt` - небольшой Kotlin HTTP-сервер на `HttpServer`.
-- `src/main/resources/public/index.html` - единственный HTML shell: login-view и fallback-view.
+- `src/main/resources/public/index.html` - основной HTML shell со страницей логина.
+- `src/main/resources/public/fallback.html` - отдельная закэшированная бизнес-страница восстановления доступа.
 - `src/main/resources/public/sw.js` - service worker с precache и навигационным fallback.
 - `src/main/resources/public/manifest.webmanifest` и `icons/` - установка PWA на домашний экран.
 - `Caddyfile.sslip` - пример reverse proxy для публичного HTTPS-домена `5.165.202.228.sslip.io`.
@@ -28,6 +29,7 @@
 
 - `/`
 - `/index.html`
+- `/fallback.html`
 - `/manifest.webmanifest`
 - иконки
 - `/api/bootstrap`
@@ -40,13 +42,13 @@
 fetch("/index.html", { cache: "no-store" })
 ```
 
-Запрос ограничен таймаутом `1500ms`. Если ответ успешный, service worker возвращает свежий shell в состоянии `login` и обновляет сохраненный `/index.html` в Cache Storage. Если запрос упал или истек таймаут, service worker возвращает последний сохраненный `/index.html` в состоянии `business-error`.
+Запрос ограничен таймаутом `1500ms`. Если ответ успешный, service worker возвращает свежий shell в состоянии `login` и обновляет сохраненный `/index.html` в Cache Storage. Если запрос упал или истек таймаут, service worker возвращает отдельный сохраненный `/fallback.html`.
 
 Service worker пропускает через этот app-shell handler не только `request.mode === "navigate"`, но и controlled GET-запросы к `/` и `/index.html`. Это нужно для iOS/браузерных запусков, где `/index.html` может прийти не как `navigate`; иначе raw cached `index.html` мог вернуться со state=`login`.
 
-Для совместимости со старыми service worker сервер продолжает принимать `/login.html` и `/business-error.html`, но оба URL физически отдают тот же `/index.html`.
+Для совместимости со старыми service worker сервер продолжает принимать `/login.html` и `/business-error.html`: `/login.html` отдает `/index.html`, а `/business-error.html` отдает `/fallback.html`.
 
-Сервер дополнительно отдает `/index.html`, `/login.html` и `/business-error.html` с:
+Сервер дополнительно отдает `/index.html`, `/login.html`, `/fallback.html` и `/business-error.html` с:
 
 ```http
 Cache-Control: no-store, max-age=0
@@ -156,7 +158,7 @@ Start-Sleep -Seconds 2
 3. Открыть `https://5.165.202.228.sslip.io/` в Safari на iPhone.
 4. Убедиться, что на странице логина видна актуальная версия.
 5. Установить PWA через Share -> Add to Home Screen.
-6. Открыть PWA с домашнего экрана и дождаться, что service worker закэшировал `/index.html`.
+6. Открыть PWA с домашнего экрана и дождаться, что service worker закэшировал `/index.html` и `/fallback.html`.
 7. Переключить Caddy на staging-сертификат.
 8. Перезапустить Caddy.
 9. Открыть PWA снова.
@@ -208,7 +210,7 @@ Get-Content -Wait .\build\caddy-sslip-access.log
 ```text
 pwaClient="service-worker"
 pwaRequest="precache"
-pwaVersion="2026-07-13.21"
+pwaVersion="2026-07-13.22"
 pwaMode="install"
 pwaTrace="..."
 ```

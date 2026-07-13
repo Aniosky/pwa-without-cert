@@ -120,7 +120,8 @@ private fun serveStatic(exchange: HttpExchange) {
     val decodedPath = URLDecoder.decode(exchange.requestURI.path, StandardCharsets.UTF_8)
     val requestedPath = when {
         decodedPath == "/" || decodedPath == "/index.html" -> "/index.html"
-        decodedPath == "/login.html" || decodedPath == "/business-error.html" -> "/index.html"
+        decodedPath == "/login.html" -> "/index.html"
+        decodedPath == "/business-error.html" -> "/fallback.html"
         decodedPath.contains("..") || decodedPath.contains('\\') -> {
             sendText(exchange, 400, "Bad Request", "text/plain; charset=utf-8")
             return
@@ -145,7 +146,7 @@ private fun serveStatic(exchange: HttpExchange) {
     val bytes = resource.use(InputStream::readBytes)
     val cacheControl = when {
         requestedPath == "/sw.js" -> "no-cache, max-age=0, must-revalidate"
-        responsePath == "/index.html" -> "no-store, max-age=0"
+        responsePath == "/index.html" || responsePath == "/fallback.html" -> "no-store, max-age=0"
         else -> "public, max-age=3600"
     }
 
