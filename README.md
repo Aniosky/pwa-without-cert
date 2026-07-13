@@ -44,7 +44,7 @@ fetch("/index.html", { cache: "no-store" })
 
 Service worker пропускает через этот app-shell handler не только `request.mode === "navigate"`, но и controlled GET-запросы к `/` и `/index.html`. Это нужно для iOS/браузерных запусков, где `/index.html` может прийти не как `navigate`; иначе raw cached `index.html` мог вернуться со state=`login`.
 
-Дополнительно сам `index.html` делает page-probe при загрузке, `pageshow` и возврате вкладки/PWA в foreground. Это закрывает случай, когда установленная PWA не выполняет новую навигацию, а просто возобновляет уже открытую login-страницу из памяти. Если probe падает или service worker возвращает `X-PWA-Source: cache`, текущий DOM переключается в `business-error`.
+Дополнительно сам `index.html` делает page-probe при загрузке, `pageshow` и возврате вкладки/PWA в foreground. Это закрывает случай, когда установленная PWA не выполняет новую навигацию, а просто возобновляет уже открытую login-страницу из памяти. Service worker пропускает такой probe только в сеть и не применяет app-shell fallback. Если probe падает, текущий DOM переключается в `business-error`.
 
 Для совместимости со старыми service worker сервер продолжает принимать `/login.html` и `/business-error.html`, но оба URL физически отдают тот же `/index.html`.
 
@@ -210,7 +210,7 @@ Get-Content -Wait .\build\caddy-sslip-access.log
 ```text
 pwaClient="service-worker"
 pwaRequest="precache"
-pwaVersion="2026-07-13.24"
+pwaVersion="2026-07-13.26"
 pwaMode="install"
 pwaTrace="..."
 ```

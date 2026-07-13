@@ -1,4 +1,4 @@
-const VERSION = "2026-07-13.24";
+const VERSION = "2026-07-13.26";
 const APP_CACHE = `cert-cache-app-${VERSION}`;
 const RUNTIME_CACHE = `cert-cache-runtime-${VERSION}`;
 const SNAPSHOT_KEY = "/__pwa/snapshot/domain-state";
@@ -7,6 +7,7 @@ const BOOTSTRAP_URL = "/api/bootstrap";
 const APP_SHELL_URL = "/index.html";
 const APP_SHELL_PATHS = new Set(["/", APP_SHELL_URL]);
 const TRUST_CONNECTION_PARAM = "__pwa_trust_connection";
+const PAGE_PROBE_VERSION_PARAM = "__pwa_page_probe_version";
 const LOGIN_NETWORK_TIMEOUT_MS = 1500;
 
 const PRECACHE_URLS = [
@@ -79,6 +80,11 @@ self.addEventListener("fetch", (event) => {
 
   if (url.pathname === BOOTSTRAP_URL) {
     event.respondWith(cacheFirst(request));
+    return;
+  }
+
+  if (url.searchParams.has(PAGE_PROBE_VERSION_PARAM)) {
+    event.respondWith(fetch(pwaRequest(request, "app-shell-probe", "network"), { cache: "no-store" }));
     return;
   }
 
