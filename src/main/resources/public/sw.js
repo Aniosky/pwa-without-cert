@@ -1,10 +1,11 @@
-const VERSION = "2026-07-13.19";
+const VERSION = "2026-07-13.20";
 const APP_CACHE = `cert-cache-app-${VERSION}`;
 const RUNTIME_CACHE = `cert-cache-runtime-${VERSION}`;
 const SNAPSHOT_KEY = "/__pwa/snapshot/domain-state";
 const MODE_KEY = "/__pwa/mode";
 const BOOTSTRAP_URL = "/api/bootstrap";
 const APP_SHELL_URL = "/index.html";
+const TRUST_CONNECTION_PARAM = "__pwa_trust_connection";
 const LOGIN_NETWORK_TIMEOUT_MS = 1500;
 
 const PRECACHE_URLS = [
@@ -81,6 +82,10 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.mode === "navigate") {
+    if (url.searchParams.get(TRUST_CONNECTION_PARAM) === "1") {
+      return;
+    }
+
     event.respondWith(handleLoginNavigation());
     return;
   }
