@@ -21,7 +21,7 @@ const elements = {
   cacheCount: document.querySelector("#cacheCount")
 };
 
-const APP_VERSION = "2026-07-12.11";
+const APP_VERSION = "2026-07-13.12";
 const SW_URL = "/sw.js";
 const SW_CACHE_MODE_VERSION = APP_VERSION;
 const SW_CACHE_MODE_KEY = `cert-cache-sw-cache-mode-${SW_CACHE_MODE_VERSION}`;

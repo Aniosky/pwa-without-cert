@@ -1,4 +1,4 @@
-const VERSION = "2026-07-12.11";
+const VERSION = "2026-07-13.12";
 const APP_CACHE = `cert-cache-app-${VERSION}`;
 const RUNTIME_CACHE = `cert-cache-runtime-${VERSION}`;
 const SNAPSHOT_KEY = "/__pwa/snapshot/domain-state";

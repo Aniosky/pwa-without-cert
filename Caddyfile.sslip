@@ -3,7 +3,7 @@
 }
 
 5.165.202.228.sslip.io:443 {
-    tls .lego-staging/certificates/5.165.202.228.sslip.io.crt .lego-staging/certificates/5.165.202.228.sslip.io.key
+    tls .lego-prod/certificates/5.165.202.228.sslip.io.crt .lego-prod/certificates/5.165.202.228.sslip.io.key
 
     reverse_proxy 127.0.0.1:18080 {
         header_up X-Forwarded-Proto https
