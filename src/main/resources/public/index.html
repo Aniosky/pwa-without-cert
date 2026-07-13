@@ -336,7 +336,7 @@
     }
   </style>
 </head>
-<body data-page-state="login" data-page-source="primary" data-app-version="2026-07-13.23" data-error-reason="">
+<body data-page-state="login" data-page-source="primary" data-app-version="2026-07-13.24" data-error-reason="">
   <main class="shell">
     <header class="topbar">
       <div>
@@ -345,11 +345,11 @@
           <span class="login-title-text">PWA Login</span>
           <span class="error-title-text">Вход недоступен</span>
         </h1>
-        <p class="index-version" id="indexVersion">index.html v2026-07-13.23</p>
+        <p class="index-version" id="indexVersion">index.html v2026-07-13.24</p>
       </div>
       <div class="meta">
         <div class="pill" id="displayMode">Safari</div>
-        <div class="pill" id="versionPill">v2026-07-13.23</div>
+        <div class="pill" id="versionPill">v2026-07-13.24</div>
       </div>
     </header>
 
@@ -429,14 +429,17 @@
 
   <script>
     (() => {
-      const APP_VERSION = "2026-07-13.23";
+      const APP_VERSION = "2026-07-13.24";
       const pageState = document.body.dataset.pageState || "login";
       const pageSource = document.body.dataset.pageSource || "primary";
       const primaryUrl = `${window.location.origin}/`;
       const trustConnectionParam = "__pwa_trust_connection";
+      const primaryProbeTimeoutMs = 1500;
       const certificatesUrl = "https://www.gosuslugi.ru/crt";
       const appStoreUrl = "https://apps.apple.com/us/app/yandex-browser-with-alice-ai/id483693909";
       const appStoreDirectUrl = "itms-apps://itunes.apple.com/app/id483693909";
+      let probeInFlight = null;
+      let lastProbeAt = 0;
 
       document.querySelector("#displayMode").textContent = window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches
         ? "Home Screen"
@@ -473,6 +476,7 @@
       if ("serviceWorker" in navigator) {
         registerServiceWorker().catch(() => {});
       }
+      setupPrimaryShellProbe();
 
       async function registerServiceWorker() {
         let reloadedForController = false;
@@ -510,6 +514,89 @@
         if (registration.waiting) {
           registration.waiting.postMessage({ type: "SKIP_WAITING" });
         }
+      }
+
+      function setupPrimaryShellProbe() {
+        runPrimaryShellProbe("load").catch(() => {});
+        window.addEventListener("pageshow", () => {
+          runPrimaryShellProbe("pageshow").catch(() => {});
+        });
+        document.addEventListener("visibilitychange", () => {
+          if (!document.hidden) {
+            runPrimaryShellProbe("visible").catch(() => {});
+          }
+        });
+      }
+
+      async function runPrimaryShellProbe(trigger) {
+        if (document.body.dataset.pageState === "business-error") {
+          return;
+        }
+        if (probeInFlight) {
+          return probeInFlight;
+        }
+
+        const now = Date.now();
+        if (now - lastProbeAt < 800) {
+          return;
+        }
+        lastProbeAt = now;
+
+        probeInFlight = probePrimaryShell(trigger)
+          .catch((error) => {
+            activateBusinessError(error && error.message ? error.message : "page probe failed");
+          })
+          .finally(() => {
+            probeInFlight = null;
+          });
+        return probeInFlight;
+      }
+
+      async function probePrimaryShell(trigger) {
+        const probeUrl = new URL("/index.html", window.location.origin);
+        probeUrl.searchParams.set("__pwa_page_probe_version", APP_VERSION);
+        probeUrl.searchParams.set("__pwa_page_probe_ts", String(Date.now()));
+        probeUrl.searchParams.set("__pwa_page_probe_trigger", trigger);
+
+        const response = await withTimeout(
+          fetch(probeUrl.toString(), {
+            cache: "no-store",
+            headers: {
+              "X-PWA-Client": "page",
+              "X-PWA-Request": "app-shell-probe",
+              "X-PWA-Version": APP_VERSION,
+              "X-PWA-Mode": trigger
+            }
+          }),
+          primaryProbeTimeoutMs,
+          "page probe timeout"
+        );
+
+        const source = response.headers.get("X-PWA-Source") || response.headers.get("X-PWA-Login-Source") || "";
+        const html = await response.clone().text();
+        if (!response.ok || source === "cache" || html.includes('data-page-state="business-error"')) {
+          activateBusinessError("LOGIN_UNAVAILABLE");
+        }
+      }
+
+      function activateBusinessError(reason) {
+        document.body.dataset.pageState = "business-error";
+        document.body.dataset.pageSource = "cache";
+        document.body.dataset.errorReason = reason || "LOGIN_UNAVAILABLE";
+        document.title = "Вход недоступен";
+        document.querySelector("#eyebrow").textContent = "PWA / Recovery";
+        document.querySelector("#sourceValue").textContent = "cache";
+        document.querySelector("#statusValue").textContent = "Состояние: LOGIN_UNAVAILABLE";
+      }
+
+      function withTimeout(promise, timeoutMs, message) {
+        let timeoutId;
+        const timeout = new Promise((_, reject) => {
+          timeoutId = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+        });
+
+        return Promise.race([promise, timeout])
+          .finally(() => window.clearTimeout(timeoutId));
       }
 
       function openYandexBrowser(url) {
